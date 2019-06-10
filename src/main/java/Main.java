@@ -31,11 +31,14 @@ public class Main extends Application {
                 tileGroup.getChildren().add(tile);
 
                 if ((y <= 2) && (x + y) % 2 != 0) {
-                    ch = makePiece(TypeOfPiece.BLACK, x, y);
+                    ch = makePiece(Piece.TypeOfPiece.BLACK, x, y);
                 }
                 if ((y >= 5) && (x + y) % 2 != 0) {
-                    ch = makePiece(TypeOfPiece.WHITE, x, y);
+                    ch = makePiece(Piece.TypeOfPiece.WHITE, x, y);
                 }
+                /*if ((y < 5 && y > 2) && (x + y) % 2 != 0) {
+                    ch = makePiece(Piece.TypeOfPiece.EMPTY, x, y);
+                }*/
                 if (ch != null) {
                     tile.setPiece(ch);
                     pieceGroup.getChildren().add(ch);
@@ -45,64 +48,70 @@ public class Main extends Application {
         return root;
     }
 
-    private MoveResult tryMove(Piece piece, int x, int y) {
-        if (player == -1 && !wightQueen) {
-            if (board[x][y].hasPiece() || (x + y) % 2 == 0) {
-                return new MoveResult(TypeOfMoves.NONE);
-            }
-            int x0 = toBoard(piece.getOldX());
-            int y0 = toBoard(piece.getOldY());
-            if (Math.abs(x - x0) == 1 && y - y0 == piece.getType().moveDir && piece.getType() == TypeOfPiece.WHITE) {
-                player = 1;
-                return new MoveResult(TypeOfMoves.NORMAL);
-            } else if (Math.abs(x - x0) == 2 && (Math.abs(y - y0) == 2) && piece.getType() == TypeOfPiece.WHITE) {
-                int x1 = x0 + (x - x0) / 2;
-                int y1 = y0 + (y - y0) / 2;
-                if (board[x1][y1].hasPiece() && board[x1][y1].getPiece().getType() != piece.getType()) {
-                    return new MoveResult((TypeOfMoves.KILL), board[x1][y1].getPiece());
+        private MoveResult tryMove(Piece piece, int x, int y) {
+            if (player == -1) {
+                if (board[x][y].hasPiece() || (x + y) % 2 == 0) {
+                    return new MoveResult(MoveResult.TypeOfMoves.NONE);
+                }
+                int x0 = toBoard(piece.getOldX());
+                int y0 = toBoard(piece.getOldY());
+                if (Math.abs(x - x0) == 1 && y - y0 == piece.getType().moveDir && piece.getType() == Piece.TypeOfPiece.WHITE) {
+                    player = 1;
+                    return new MoveResult(MoveResult.TypeOfMoves.NORMAL);
+                } else if (Math.abs(x - x0) == 2 && (Math.abs(y - y0) == 2) && piece.getType() == Piece.TypeOfPiece.WHITE) {
+                    int x1 = x0 + (x - x0) / 2;
+                    int y1 = y0 + (y - y0) / 2;
+                    if (board[x1][y1].hasPiece() && board[x1][y1].getPiece().getType() != piece.getType()) {
+                        if (canMove(piece, x,y)) {
+                            player = -1;
+                            return new MoveResult((MoveResult.TypeOfMoves.KILL), board[x1][y1].getPiece());
+                        } else return new MoveResult((MoveResult.TypeOfMoves.KILL), board[x1][y1].getPiece());
+                    }
+                }
+            } else {
+                if (board[x][y].hasPiece() || (x + y) % 2 == 0) {
+                    return new MoveResult(MoveResult.TypeOfMoves.NONE);
+                }
+                int x0 = toBoard(piece.getOldX());
+                int y0 = toBoard(piece.getOldY());
+                if (Math.abs(x - x0) == 1 && y - y0 == piece.getType().moveDir && piece.getType() == Piece.TypeOfPiece.BLACK) {
+                    player = -1;
+                    return new MoveResult(MoveResult.TypeOfMoves.NORMAL);
+                } else if (Math.abs(x - x0) == 2 && (Math.abs(y - y0) == 2) && piece.getType() == Piece.TypeOfPiece.BLACK) {
+                    int x1 = x0 + (x - x0) / 2;
+                    int y1 = y0 + (y - y0) / 2;
+                    if (board[x1][y1].hasPiece() && board[x1][y1].getPiece().getType() != piece.getType()) {
+                        if (canMove(piece, x,y)) {
+                            player = 1;
+                            return new MoveResult((MoveResult.TypeOfMoves.KILL), board[x1][y1].getPiece());
+                        } else return new MoveResult((MoveResult.TypeOfMoves.KILL), board[x1][y1].getPiece());
+                    }
                 }
             }
-        } else if (player == 1 && !blackQueen){
-            if (board[x][y].hasPiece() || (x + y) % 2 == 0) {
-            return new MoveResult(TypeOfMoves.NONE);
-        }
-            int x0 = toBoard(piece.getOldX());
-            int y0 = toBoard(piece.getOldY());
-            if (Math.abs(x - x0) == 1 && y - y0 == piece.getType().moveDir && piece.getType() == TypeOfPiece.BLACK) {
-                player = -1;
-                return new MoveResult(TypeOfMoves.NORMAL);
-            } else if (Math.abs(x - x0) == 2 && (Math.abs(y - y0) == 2) && piece.getType() == TypeOfPiece.BLACK) {
-                int x1 = x0 + (x - x0) / 2;
-                int y1 = y0 + (y - y0) / 2;
-                if (board[x1][y1].hasPiece() && board[x1][y1].getPiece().getType() != piece.getType()) {
-                    return new MoveResult((TypeOfMoves.KILL), board[x1][y1].getPiece());
-                }
-            }
-        } else if (player == -1 && wightQueen){
-            if (board[x][y].hasPiece() || (x + y) % 2 == 0) {
-                return new MoveResult(TypeOfMoves.NONE);
-            }
-            boolean isEmpty = false;
-            int x0 = toBoard(piece.getOldX());
-            int y0 = toBoard(piece.getOldY());
-
-            if (Math.abs(x - x0) == 1 && y - y0 == piece.getType().moveDir && piece.getType() == TypeOfPiece.WHITE_QUEEN) {
-                player = 1;
-                return new MoveResult(TypeOfMoves.NORMAL);
-            } else if (Math.abs(x - x0) == 2 && (Math.abs(y - y0) == 2) && piece.getType() == TypeOfPiece.WHITE_QUEEN) {
-                int x1 = x0 + (x - x0) / 2;
-                int y1 = y0 + (y - y0) / 2;
-                if (board[x1][y1].hasPiece() && board[x1][y1].getPiece().getType() != piece.getType()) {
-                    return new MoveResult((TypeOfMoves.KILL), board[x1][y1].getPiece());
-                }
-            }
-        }
-        return new MoveResult(TypeOfMoves.NONE);
+            return new MoveResult(MoveResult.TypeOfMoves.NONE);
     }
 
     private int toBoard(double pixel) {
-        return (int)(pixel + tileSize / 2) / tileSize;
+        return (int) (pixel + tileSize / 2) / tileSize;
     }
+    private boolean canMove(Piece piece, int x, int y) {
+        if ((x + 2 < 8) && (y + 2 < 8) && board[x + 1][y + 1].getPiece().getType() != null && board[x + 1][y + 1].getPiece().getType() != piece.getType()
+                && board[x + 2][y + 2].getPiece().getType() == null) {
+            return true;
+        } else if ((x - 2 >= 0) && (y + 2 < 8) && board[x - 1][y + 1].getPiece().getType() != null && board[x - 1][y + 1].getPiece().getType() != piece.getType()
+                && board[x - 2][y + 2].getPiece().getType() == null) {
+            return true;
+        } else if ((x + 2 < 8) && (y - 2 >= 0) && board[x + 1][y - 1].getPiece().getType() != null && board[x + 1][y - 1].getPiece().getType() != piece.getType()
+                && board[x + 2][y - 2].getPiece().getType() == null) {
+            return true;
+        } else if ((x - 2 >= 0) && (y - 2 >= 0) && board[x - 1][y - 1].getPiece().getType() != null && board[x - 1][y - 1].getPiece().getType() != piece.getType()
+                && board[x - 2][y - 2].getPiece().getType() == null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         Scene scene = new Scene(createContent());
@@ -111,7 +120,7 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    private Piece makePiece(TypeOfPiece type, int x, int y){
+    private Piece makePiece(Piece.TypeOfPiece type, int x, int y) {
         Piece piece = new Piece(type, x, y);
         piece.setOnMouseReleased(event -> {
             int newX = toBoard(piece.getLayoutX());
@@ -136,16 +145,13 @@ public class Main extends Application {
                     piece.move(newX, newY);
                     board[x0][y0].setPiece(null);
                     board[newX][newY].setPiece(piece);
-                case KILL_Q:
-                    board[x0][y0].setPiece(null);
-                    board[newX][newY].setPiece(piece);
-                    Piece oth = res.getPiece();
-                    board[toBoard(oth.getOldX())][toBoard(oth.getOldY())].setPiece(null);
-                    pieceGroup.getChildren().remove(oth);
+                    break;
             }
         });
         return piece;
     }
 
-    public static void main(String[] args) {launch(args); }
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

@@ -1,4 +1,9 @@
+
 public class MoveResult {
+    public enum TypeOfMoves {
+        NONE, NORMAL, KILL
+    }
+
     private TypeOfMoves type;
 
     public TypeOfMoves getType() {
